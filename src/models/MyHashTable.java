@@ -38,7 +38,7 @@ public class MyHashTable<K, V> {
     }
 
     private int hash(K key) {
-        return Math.abs(key.hashCode());
+        return (key.hashCode() & 0x7fffffff) % M;
     }
 
 
@@ -49,31 +49,31 @@ public class MyHashTable<K, V> {
             size++;
         } else {
             HashNode<K, V> root = chainArray[index];
-            while (root != null){
+            while (true) {
                 if (root.key.equals(key)) {
                     root.value = value;
-
-                    return;
+                    return; // не увеличиваем size
                 }
-                if(root.next == null){
+                if (root.next == null) {
                     root.next = new HashNode<>(key, value);
-
                     size++;
                     return;
                 }
-
                 root = root.next;
             }
         }
     }
 
+
     public V get(K key) {
-        try {
-            return findNode(chainArray[hash(key) % M], key).value;
-        } catch (NullPointerException e) {
-            return null;
+        HashNode<K, V> current = chainArray[hash(key) % M];
+        while (current != null) {
+            if (current.key.equals(key)) return current.value;
+            current = current.next;
         }
+        return null;
     }
+
 
 
     public V remove(K key) {
@@ -131,15 +131,14 @@ public class MyHashTable<K, V> {
         return null;
     }
 
-    private HashNode<K, V> findNode(HashNode<K, V> root, K key) throws NullPointerException {
-        while (root != null) {
-            if (root.key.equals(key)) {
-
-                return root;
-            }
-            root = root.next;
+    public int getBucketSize(int index) {
+        HashNode<K, V> current = chainArray[index];
+        int size = 0;
+        while (current != null) {
+            size++;
+            current = current.next;
         }
 
-        throw new NullPointerException("A " + key + " key does not exist");
+        return size;
     }
 }

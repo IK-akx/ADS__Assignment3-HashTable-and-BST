@@ -47,20 +47,25 @@ public class BST<K extends Comparable<K>, V> implements Iterable<BST<K, V>.Node<
 
         Node<K, V> current = root;
         while(current != null){
-            if(key.compareTo(current.key) == 0){
+            int cmp = key.compareTo(current.key);
+            if(cmp == 0){
                 current.val = val;
-
                 return;
             }
-
-            if(key.compareTo(current.key) < 0){
+            if(cmp < 0){
                 if(current.left == null){
                     current.left = new Node(key, val);
-
                     size++;
                     return;
                 }
                 current = current.left;
+            } else {
+                if(current.right == null){
+                    current.right = new Node(key, val);
+                    size++;
+                    return;
+                }
+                current = current.right;
             }
         }
     }
@@ -144,5 +149,7 @@ public class BST<K extends Comparable<K>, V> implements Iterable<BST<K, V>.Node<
 
         return list.iterator();
     }
+
+
 
 }
