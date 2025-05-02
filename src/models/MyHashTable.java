@@ -1,8 +1,6 @@
 package models;
 
-import models.interfaces.IMyHashTable;
-
-public class MyHashTable<K, V> implements IMyHashTable<K, V> {
+public class MyHashTable<K, V> {
     private class HashNode<K, V> {
         private K key;
         private V value;
@@ -24,43 +22,123 @@ public class MyHashTable<K, V> implements IMyHashTable<K, V> {
     private int size;
 
     public MyHashTable() {
-        chainArray = new HashNode[M];
+        chainArray = (HashNode<K, V>[]) new HashNode[M];
         size = 0;
     }
 
     public MyHashTable(int M) {
         this.M = M;
-        chainArray = new HashNode[M];
+        chainArray = (HashNode<K, V>[]) new HashNode[M];
         size = 0;
     }
 
+    public int getM(){
+        return M;
+    }
+
     private int hash(K key) {
-        return (key.hashCode() & 0x7fffffff) % M;
+        return Math.abs(key.hashCode());
     }
 
 
-    @Override
     public void put(K key, V value) {
+        int index = hash(key) % M;
+        if (chainArray[index] == null) {
+            chainArray[index] = new HashNode<>(key, value);
+            size++;
+        } else {
+            HashNode<K, V> root = chainArray[index];
+            while (root != null){
+                if (root.key.equals(key)) {
+                    root.value = value;
 
+                    return;
+                }
+                if(root.next == null){
+                    root.next = new HashNode<>(key, value);
+
+                    size++;
+                    return;
+                }
+
+                root = root.next;
+            }
+        }
     }
 
-    @Override
     public V get(K key) {
-        return null;
+        try {
+            return findNode(chainArray[hash(key) % M], key).value;
+        } catch (NullPointerException e) {
+            return null;
+        }
     }
 
-    @Override
+
     public V remove(K key) {
+        V value = null;
+        HashNode<K, V> current = chainArray[hash(key) % M];
+        HashNode<K, V> previous = null;
+        while (current != null) {
+            if (current.key.equals(key)) {
+                value = current.value;
+                if (previous == null && current.next == null) {
+                    chainArray[hash(key) % M] = null;
+                } else if (previous == null && current.next != null) {
+                    chainArray[hash(key) % M] = current.next;
+                } else {
+                    previous.next = current.next;
+                }
+
+                size--;
+                return value;
+            }
+            previous = current;
+            current = current.next;
+        }
+
         return null;
     }
 
-    @Override
+
     public boolean contains(K key) {
+        int index = hash(key) % M;
+        HashNode<K, V> current = chainArray[index];
+
+        while (current != null) {
+            if (current.key.equals(key)) {
+                return true;
+            }
+            current = current.next;
+        }
+
         return false;
     }
 
-    @Override
+
     public K getKey(V value) {
+        for (int i = 0; i < M; i++) {
+            HashNode<K, V> current = chainArray[i];
+            while (current != null) {
+                if (current.value.equals(value)) {
+                    return current.key;
+                }
+                current = current.next;
+            }
+        }
+
         return null;
+    }
+
+    private HashNode<K, V> findNode(HashNode<K, V> root, K key) throws NullPointerException {
+        while (root != null) {
+            if (root.key.equals(key)) {
+
+                return root;
+            }
+            root = root.next;
+        }
+
+        throw new NullPointerException("A " + key + " key does not exist");
     }
 }
